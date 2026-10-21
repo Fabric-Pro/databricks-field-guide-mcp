@@ -1,0 +1,50 @@
+# Copies this server's entry from the official MCP Registry into server.json.
+# The registry is the source of truth; this file only mirrors it. No secrets.
+name: Refresh server.json
+
+on:
+  schedule:
+    - cron: "17 6 * * 1"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: refresh-server-json
+  cancel-in-progress: false
+
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Fetch the latest registry entry
+        run: |
+          set -euo pipefail
+          curl -fsS --retry 3 --max-time 30 \
+            "https://registry.modelcontextprotocol.io/v0.1/servers/com.techfabric.databricks%2Ffield-guide/versions/latest" \
+            -o registry.json
+          # Refuse anything that is not this server's active entry.
+          jq -e '.server.name == "com.techfabric.databricks/field-guide"
+                 and (.server.version | type == "string")
+                 and (.server.remotes | length > 0)
+                 and (._meta["io.modelcontextprotocol.registry/official"].status == "active")' \
+            registry.json > /dev/null
+          jq '.server' registry.json > server.json
+          rm registry.json
+
+      - name: Commit if it changed
+        run: |
+          set -euo pipefail
+          if git diff --quiet -- server.json; then
+            echo "server.json already matches the registry."
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add server.json
+          git commit -m "server.json: refresh from the MCP Registry ($(jq -r .version server.json))"
+          git push

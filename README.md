@@ -129,11 +129,47 @@ Gemini CLI, GitHub Copilot CLI and OpenCode each have their own line in the
 | `get_code_examples` | Returns the SQL, Python, CLI and config blocks that match a topic, with the explanation around each one |
 | `whats_new` | Lists recent Databricks changes the guide tracks, newest first: margin notes, release-stage changes and updated chapters |
 | `list_chapters` | The table of contents, with each chapter's part, summary, dates and main sections |
+| `review_databricks_code` | Checks one SQL, Python or YAML file (a bundle, job, cluster or warehouse config) against the guide's own rules. Each finding gives the line, why, the fix, the guide's sentence with its section URL and the docs it cites, and the result lists the sections worth reading |
+| `estimate_cost` | Estimates a workload's monthly cost from the figures the guide states, as a range with its assumptions. Every number carries its source sentence, section URL, date and pricing page, and where the guide has no figure it says so instead of guessing |
 
-Two resources come with them: `fieldguide://llms.txt`, one line per page, and
-`fieldguide://page/{+path}`, any published page as Markdown. Since version
-1.2.0, hosts that render [MCP Apps](https://modelcontextprotocol.io/) show the
-results as an interactive view instead of plain text.
+All seven are read-only, and none calls a model: the review and the estimate are
+deterministic checks against the guide's text, and your agent does the
+reasoning. A rule applies only while the guide still says what it cites. The
+rules leave out what the guide doesn't argue, such as `SELECT *` or `collect()`
+on their own.
+
+Three resources come with them: `fieldguide://llms.txt`, one line per page;
+`fieldguide://whats-new`, the last 30 days of changes as JSON; and
+`fieldguide://page/{+path}`, any published page as Markdown. Hosts that render
+[MCP Apps](https://modelcontextprotocol.io/) show the results as an interactive
+view instead of plain text: since 1.3.0 that includes the review's findings and
+the estimate as a table.
+
+## Prompts
+
+Hosts that support MCP prompts show these as slash commands. In Claude Code
+they're `/mcp__databricks-field-guide__<name>`.
+
+| Prompt | What it does |
+| --- | --- |
+| `databricks-review` | Reviews this repository's Databricks setup against the guide. Your agent collects the bundles, notebooks, SQL and compute configs, runs `review_databricks_code` on each and summarises the findings with links |
+| `databricks-cost` | Estimates what the repository's workloads cost with `estimate_cost`, with every figure's source and date and the gaps stated plainly |
+| `whats-new` | Summarises what Databricks changed lately and which of it touches this repository |
+| `field-guide-chapter` | Puts a chapter, or one section of it, into the conversation as Markdown |
+| `field-guide-code` | Finds the guide's code examples for a topic, optionally from one chapter |
+
+Chapter and section arguments complete as you type, and so does the page
+resource's path. MCP completes prompt arguments, not tool arguments, so these
+prompts are where `get_chapter`'s chapter names complete.
+
+## Notifications
+
+On MCP 2026-07-28 a client can subscribe with `subscriptions/listen` to
+`fieldguide://whats-new` or any `fieldguide://page/...`. When a deploy of the
+guide changes a subscribed resource, such as a new margin note, a rewritten
+chapter or a feature moving release stage, the server sends
+`notifications/resources/updated`. Clients on 2025-11-25 have no stream to push
+on, so they read `whats_new` instead.
 
 Every answer says when its page last changed and how long a client may cache
 it: 10 minutes for what's new, 15 for search and an hour for chapters and code.
@@ -149,6 +185,11 @@ The index is rebuilt on every deploy of the guide.
   our test environments."
 - "What does the Field Guide say about choosing compute to cut our Databricks
   bill?"
+- "Review this repo's Databricks bundle against the Field Guide." Or run
+  `/mcp__databricks-field-guide__databricks-review` in Claude Code.
+- "Estimate what a Medium Databricks App costs running office hours, using the
+  Field Guide's figures."
+- "Check `pipelines/orders.sql` against the Field Guide and fix what it flags."
 
 ## Sign-in, limits and privacy
 
@@ -156,10 +197,12 @@ There's no sign-in and no write tool. Each IP address gets 60 calls a minute
 and 300 an hour; past that the server answers HTTP 429 with a `Retry-After`
 header.
 
-The server doesn't keep what you searched for or read. Its log line for a call
-names the tool and the protocol revision, never the arguments. The only thing
-stored is the per-IP call count, which expires after about an hour, and the
-server makes no outbound request. The site's
+The server doesn't keep what you searched for or read, or the code you send
+to `review_databricks_code`. A finding that quotes a line masks any secret on
+it. The server's log line for a call names the tool and the protocol revision,
+never the arguments. It stores two things: the per-IP call count, which expires
+after about an hour, and one record per deploy of what changed, for
+notifications. It makes no outbound request. The site's
 [privacy policy](https://www.techfabric.com/privacy-policy) covers the rest.
 
 It speaks MCP revision 2026-07-28, and clients still on 2025-11-25 are served on

@@ -1,5 +1,7 @@
 # Copies this server's entry from the official MCP Registry into server.json.
 # The registry is the source of truth; this file only mirrors it. No secrets.
+# Only admins can push to main, so a change arrives as a pull request from the
+# registry-refresh branch, for an admin to merge.
 name: Refresh server.json
 
 on:
@@ -9,6 +11,7 @@ on:
 
 permissions:
   contents: write
+  pull-requests: write
 
 concurrency:
   group: refresh-server-json
@@ -36,15 +39,24 @@ jobs:
           jq '.server' registry.json > server.json
           rm registry.json
 
-      - name: Commit if it changed
+      - name: Open a pull request if it changed
+        env:
+          GH_TOKEN: ${{ github.token }}
         run: |
           set -euo pipefail
           if git diff --quiet -- server.json; then
             echo "server.json already matches the registry."
             exit 0
           fi
+          version=$(jq -r .version server.json)
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git switch -C registry-refresh
           git add server.json
-          git commit -m "server.json: refresh from the MCP Registry ($(jq -r .version server.json))"
-          git push
+          git commit -m "server.json: refresh from the MCP Registry (${version})"
+          git push --force origin registry-refresh
+          if [ -z "$(gh pr list --head registry-refresh --state open --json number --jq '.[].number')" ]; then
+            gh pr create --base main --head registry-refresh \
+              --title "server.json: refresh from the MCP Registry (${version})" \
+              --body "The official MCP Registry's latest entry for this server changed. This copies it into server.json unchanged. Check whether README.md needs the same change before merging."
+          fi

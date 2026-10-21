@@ -41,7 +41,8 @@ code isn't here and isn't open source.
 
 The live server and the registry are the source of truth. If this README and
 the server's `tools/list` ever disagree, the server is right. A weekly GitHub
-Action copies the registry entry into `server.json`.
+Action compares `server.json` with the registry and opens a pull request when
+the entry has changed.
 
 ## Add it to your agent
 

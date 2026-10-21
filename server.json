@@ -1,9 +1,9 @@
 {
   "$schema": "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json",
   "name": "com.techfabric.databricks/field-guide",
-  "description": "Search and read TechFabric's Databricks Field Guide, with interactive views in MCP Apps hosts.",
+  "description": "TechFabric's Databricks Field Guide: search and read it, review Databricks code, estimate cost.",
   "title": "Databricks Field Guide by TechFabric",
-  "version": "1.2.0",
+  "version": "1.3.0",
   "websiteUrl": "https://databricks.techfabric.com",
   "icons": [
     {

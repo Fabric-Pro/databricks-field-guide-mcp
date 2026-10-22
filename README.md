@@ -29,8 +29,9 @@ it never connects to a workspace.
 
 ## What's in this repository
 
-Descriptor files, so MCP directories have a repository to list. The server's
-code isn't here and isn't open source.
+Descriptor files, so MCP directories have a repository to list. The official
+MCP Registry entry names this repository, and GitHub's MCP Registry shows this
+README in Copilot. The server's code isn't here and isn't open source.
 
 | File | What it is |
 | --- | --- |
@@ -107,6 +108,31 @@ show up in Copilot's agent mode.
 }
 ```
 
+### GitHub Copilot
+
+In VS Code, use the configuration above. Copilot CLI saves the server to
+`~/.copilot/mcp-config.json`, for every project:
+
+```sh
+copilot mcp add --transport http databricks-field-guide https://databricks.techfabric.com/mcp
+```
+
+Copilot's coding agent on github.com takes it in the repository's
+**Settings**, under **Copilot** and **MCP servers**.
+Every tool is read-only, so it can have all of them:
+
+```json
+{
+  "mcpServers": {
+    "databricks-field-guide": {
+      "type": "http",
+      "url": "https://databricks.techfabric.com/mcp",
+      "tools": ["*"]
+    }
+  }
+}
+```
+
 ### Anything else
 
 Point the client at the URL with the Streamable HTTP transport and no
@@ -117,7 +143,7 @@ authentication. A client that only speaks stdio can reach it through
 npx mcp-remote https://databricks.techfabric.com/mcp
 ```
 
-Gemini CLI, GitHub Copilot CLI and OpenCode each have their own line in the
+Gemini CLI and OpenCode each have their own line in the
 [setup guide](https://www.techfabric.com/mcp-servers#connect).
 
 ## Tools
@@ -212,7 +238,8 @@ the same URL. In the official registry it's
 ## Links
 
 - [The Databricks Field Guide](https://databricks.techfabric.com)
-- [Setup guide for both TechFabric MCP servers](https://www.techfabric.com/mcp-servers)
+- [The Field Guide MCP server's documentation](https://www.techfabric.com/mcp-servers#field-guide): every tool, resource and limit, and the setup for each client
+- [The official MCP Registry entry](https://registry.modelcontextprotocol.io/v0.1/servers/com.techfabric.databricks%2Ffield-guide/versions/latest)
 - [The techfabric.com MCP server](https://github.com/Fabric-Pro/techfabric-mcp)
 - [TechFabric's Databricks consulting](https://www.techfabric.com/databricks)
 - [Talk to an engineer](https://www.techfabric.com/contact)

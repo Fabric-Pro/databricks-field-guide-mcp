@@ -14,8 +14,10 @@ code that runs and the docs.databricks.com pages that section cites.
 https://databricks.techfabric.com/mcp
 ```
 
-It's a remote server over Streamable HTTP, so there's nothing to install. It's
-read-only, it needs no sign-in, and it's free.
+It's a remote server over Streamable HTTP, so there's nothing to install. Its
+public tools are read-only, need no sign-in, and are free. Four more tools are
+for the Field Guide's owner only (see [Owner tools](#owner-tools)); if your
+client offers to sign in, skip it.
 
 Ask how to add a Unity Catalog row filter, and the agent gets the guide's
 section on it, the SQL function from that section and the Databricks
@@ -119,7 +121,7 @@ copilot mcp add --transport http databricks-field-guide https://databricks.techf
 
 Copilot's coding agent on github.com takes it in the repository's
 **Settings**, under **Copilot** and **MCP servers**.
-Every tool is read-only, so it can have all of them:
+Every public tool is read-only, so it can have all of them (the four owner tools answer 401 without the owner's sign-in):
 
 ```json
 {
@@ -136,7 +138,8 @@ Every tool is read-only, so it can have all of them:
 ### Anything else
 
 Point the client at the URL with the Streamable HTTP transport and no
-authentication. A client that only speaks stdio can reach it through
+authentication; the server advertises an OAuth sign-in, which only its owner
+uses. A client that only speaks stdio can reach it through
 [`mcp-remote`](https://www.npmjs.com/package/mcp-remote):
 
 ```sh
@@ -158,7 +161,7 @@ Gemini CLI and OpenCode each have their own line in the
 | `review_databricks_code` | Checks one SQL, Python or YAML file (a bundle, job, cluster or warehouse config) against the guide's own rules. Each finding gives the line, why, the fix, the guide's sentence with its section URL and the docs it cites, and the result lists the sections worth reading |
 | `estimate_cost` | Estimates a workload's monthly cost from the figures the guide states, as a range with its assumptions. Every number carries its source sentence, section URL, date and pricing page, and where the guide has no figure it says so instead of guessing |
 
-All seven are read-only, and none calls a model: the review and the estimate are
+All seven are read-only and anonymous, and none calls a model: the review and the estimate are
 deterministic checks against the guide's text, and your agent does the
 reasoning. A rule applies only while the guide still says what it cites. The
 rules leave out what the guide doesn't argue, such as `SELECT *` or `collect()`
@@ -170,6 +173,17 @@ Three resources come with them: `fieldguide://llms.txt`, one line per page;
 [MCP Apps](https://modelcontextprotocol.io/) show the results as an interactive
 view instead of plain text: since 1.3.0 that includes the review's findings and
 the estimate as a table.
+
+## Owner tools
+
+Since 1.4.0 the server also lists four tools for the Field Guide's owner,
+to review the same-day news notes before they publish: `list_note_drafts`,
+`preview_note`, `approve_note` and `reject_note`, with their own MCP App view
+(`ui://databricks-field-guide/notes`). They need a Microsoft sign-in that only
+the owner's TechFabric account can complete, and each says so in `tools/list`
+(`securitySchemes`, OAuth scope `fieldguide.owner`). Called without it they
+answer HTTP 401 with the standard challenge. Nobody else needs them, and every
+other tool works the same signed in or not.
 
 ## Prompts
 
@@ -219,7 +233,8 @@ The index is rebuilt on every deploy of the guide.
 
 ## Sign-in, limits and privacy
 
-There's no sign-in and no write tool. Each IP address gets 60 calls a minute
+The public tools need no sign-in and write nothing; the four owner tools are
+the only ones that act, and only for the owner. Each IP address gets 60 calls a minute
 and 300 an hour; past that the server answers HTTP 429 with a `Retry-After`
 header.
 
@@ -228,7 +243,7 @@ to `review_databricks_code`. A finding that quotes a line masks any secret on
 it. The server's log line for a call names the tool and the protocol revision,
 never the arguments. It stores two things: the per-IP call count, which expires
 after about an hour, and one record per deploy of what changed, for
-notifications. It makes no outbound request. The site's
+notifications. The public tools make no outbound request. The site's
 [privacy policy](https://www.techfabric.com/privacy-policy) covers the rest.
 
 It speaks MCP revision 2026-07-28, and clients still on 2025-11-25 are served on

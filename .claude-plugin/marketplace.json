@@ -1,0 +1,12 @@
+{
+  "name": "techfabric-field-guide",
+  "description": "TechFabric's interactive Databricks learning and certification companion.",
+  "owner": { "name": "TechFabric" },
+  "plugins": [
+    {
+      "name": "field-guide",
+      "source": "./plugins/field-guide",
+      "description": "Interactive Databricks learning, certification practice and sourced engineering guidance."
+    }
+  ]
+}

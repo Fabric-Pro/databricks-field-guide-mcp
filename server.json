@@ -1,13 +1,13 @@
 {
   "$schema": "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json",
   "name": "com.techfabric.databricks/field-guide",
-  "description": "TechFabric's Databricks Field Guide: search and read it, review Databricks code, estimate cost.",
+  "description": "Interactive Databricks learning, certification practice and sourced engineering guidance.",
   "title": "Databricks Field Guide by TechFabric",
   "repository": {
     "url": "https://github.com/Fabric-Pro/databricks-field-guide-mcp",
     "source": "github"
   },
-  "version": "1.4.1",
+  "version": "1.8.0",
   "websiteUrl": "https://databricks.techfabric.com",
   "icons": [
     {

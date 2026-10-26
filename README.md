@@ -4,18 +4,20 @@
 
 # Databricks Field Guide MCP server
 
-Coding agents write Databricks code from training data that's months old. The
-[Databricks Field Guide](https://databricks.techfabric.com) is what
-TechFabric's engineers know about building, running and paying for Databricks,
-and its MCP server hands your agent the section that answers the question, with
-code that runs and the docs.databricks.com pages that section cites.
+Learn Databricks, practice for a certification, and answer engineering questions
+with the [Databricks Field Guide](https://databricks.techfabric.com).
+Ask "Help me learn Databricks" to start a diagnostic, or "Help me prepare for
+Data Engineer Associate" to start domain practice. The assistant uses interactive
+MCP Apps cards where supported and asks one question at a time in text clients.
+Answers include the guide's source sections and official documentation links.
 
 ```
 https://databricks.techfabric.com/mcp
 ```
 
-It's a remote server over Streamable HTTP, so there's nothing to install. It's
-read-only, it needs no sign-in, and it's free.
+It's a remote server over Streamable HTTP: no local server to run, no sign-in,
+and free public learning. The optional Claude Code plugin below bundles the
+connection and six skills; connecting MCP alone does not install skills.
 
 Ask how to add a Unity Catalog row filter, and the agent gets the guide's
 section on it, the SQL function from that section and the Databricks
@@ -29,9 +31,9 @@ it never connects to a workspace.
 
 ## What's in this repository
 
-Descriptor files, so MCP directories have a repository to list. The official
-MCP Registry entry names this repository, and GitHub's MCP Registry shows this
-README in Copilot. The server's code isn't here and isn't open source.
+Registry descriptors and an optional client plugin. The official MCP Registry
+entry names this repository, and GitHub's MCP Registry shows this README in
+Copilot. The server's code isn't here and isn't open source.
 
 | File | What it is |
 | --- | --- |
@@ -39,6 +41,8 @@ README in Copilot. The server's code isn't here and isn't open source.
 | `glama.json` | Maintainer list for [Glama](https://glama.ai/mcp/connectors/com.techfabric.databricks/field-guide) |
 | `icon.png`, `icon-light.png` | The TechFabric mark at 256 px, for dark and light backgrounds |
 | `LICENSE` | Apache-2.0, for these files only |
+| `.claude-plugin/marketplace.json` | Claude Code marketplace descriptor |
+| `plugins/field-guide/` | Anonymous MCP connection, six skills and a connection-check script |
 
 The live server and the registry are the source of truth. If this README and
 the server's `tools/list` ever disagree, the server is right. A weekly GitHub
@@ -49,11 +53,36 @@ the entry has changed.
 
 ### Claude Code
 
+To install both skills and the connection, run in Claude Code:
+
+```text
+/plugin marketplace add Fabric-Pro/databricks-field-guide-mcp
+/plugin install field-guide@techfabric-field-guide
+```
+
+Start a new session. The skills cover general Databricks questions, guided
+learning, certifications, code review, cost estimates and recent changes.
+They complement Databricks' development plugin, not replace workspace access or
+deployment tooling. Keep one Field Guide connection to avoid duplicate tools.
+
+For just the MCP connection, without skills:
+
 ```sh
 claude mcp add --transport http databricks-field-guide https://databricks.techfabric.com/mcp
 ```
 
 Add `--scope user` to have it in every project.
+
+### agy
+
+From a clone of this repository:
+
+```sh
+agy plugin install ./plugins/field-guide
+```
+
+Start a new session. The native agy manifest and `mcp_config.json` bundle the
+same six skills and preserve the HTTP connection without Claude-plugin conversion.
 
 ### Claude Desktop and claude.ai
 
@@ -150,6 +179,7 @@ Gemini CLI and OpenCode each have their own line in the
 
 | Tool | What it does |
 | --- | --- |
+| `start_here` | Starts a working diagnostic, a named concept lesson or certification practice, with an Apps card and text fallback |
 | `search_guide` | Finds the chapter sections, margin notes and events that answer a Databricks question, best first, each with its URL and section anchor |
 | `get_chapter` | Reads a chapter, a margin note or one section of either as Markdown, with code, FAQs and the docs.databricks.com links it cites |
 | `get_code_examples` | Returns the SQL, Python, CLI and config blocks that match a topic, with the explanation around each one |
@@ -157,8 +187,16 @@ Gemini CLI and OpenCode each have their own line in the
 | `list_chapters` | The table of contents, with each chapter's part, summary, dates and main sections |
 | `review_databricks_code` | Checks one SQL, Python or YAML file (a bundle, job, cluster or warehouse config) against the guide's own rules. Each finding gives the line, why, the fix, the guide's sentence with its section URL and the docs it cites, and the result lists the sections worth reading |
 | `estimate_cost` | Estimates a workload's monthly cost from the figures the guide states, as a range with its assumptions. Every number carries its source sentence, section URL, date and pricing page, and where the guide has no figure it says so instead of guessing |
+| `explore_concept` | Opens a guided, interactive concept walkthrough |
+| `quiz_me` | Asks sourced questions and scores the reader's actual answers |
+| `learn_path` | Provides role-based learning steps and checks progress supplied by the reader |
+| `exam_prep` | Maps certification domains to guide coverage and official exam guides |
+| `flashcards` | Practices sourced terms by chapter or exam domain |
+| `visualize` | Builds a guide-grounded diagram or chart |
+| `decide` | Compares engineering choices from the guide's stated trade-offs |
+| `explore_diagram` | Opens an interactive walkthrough of a chapter diagram |
 
-All seven are read-only, and none calls a model: the review and the estimate are
+All sixteen are read-only, and none calls a model: the review and the estimate are
 deterministic checks against the guide's text, and your agent does the
 reasoning. A rule applies only while the guide still says what it cites. The
 rules leave out what the guide doesn't argue, such as `SELECT *` or `collect()`
@@ -178,6 +216,14 @@ they're `/mcp__databricks-field-guide__<name>`.
 
 | Prompt | What it does |
 | --- | --- |
+| `start` | Starts a first learning or certification session |
+| `learn` | Teaches a topic with guide sections and practice |
+| `quiz` | Runs a sourced quiz one question at a time |
+| `explain` | Opens an interactive concept explanation |
+| `path` | Starts a role-based learning path |
+| `exam` | Prepares a certification's domain map and practice |
+| `flashcards` | Starts a recall deck |
+| `estimate` | Estimates a named workload's cost from cited rates |
 | `databricks-review` | Reviews this repository's Databricks setup against the guide. Your agent collects the bundles, notebooks, SQL and compute configs, runs `review_databricks_code` on each and summarises the findings with links |
 | `databricks-cost` | Estimates what the repository's workloads cost with `estimate_cost`, with every figure's source and date and the gaps stated plainly |
 | `whats-new` | Summarises what Databricks changed lately and which of it touches this repository |
@@ -203,6 +249,9 @@ The index is rebuilt on every deploy of the guide.
 
 ## Things to ask
 
+- "Help me learn Databricks. Start with a short diagnostic."
+- "Help me prepare for Data Engineer Associate. Start practice now."
+- "Explain Unity Catalog interactively, then check my understanding."
 - "How do I add a Unity Catalog row filter? Use the Databricks Field Guide."
 - "What changed in Databricks in the last two weeks?"
 - "Get the Field Guide's SQL for a Unity Catalog column mask and apply it to
@@ -218,6 +267,19 @@ The index is rebuilt on every deploy of the guide.
 - "Check `pipelines/orders.sql` against the Field Guide and fix what it flags."
 
 ## Sign-in, limits and privacy
+
+From an installed plugin directory, `node scripts/doctor.mjs` checks anonymous
+discovery, portable schemas, a working diagnostic, certification practice and
+the Apps resource. Node.js 20 or newer is required. This is a connection check,
+not proof that a particular host renders cards.
+
+Practice comes from the guide, not real exam questions. Coverage gaps are shown;
+verify requirements against the linked official exam guide. The Field Guide is
+independent of Databricks and cannot guarantee a certification result or complete,
+up-to-the-minute platform coverage. Missing answers should be checked in official
+documentation. Progress stays in the conversation unless you ask to save it.
+Review skills ask before sending repository code; share only approved, sanitized
+files, without secrets or customer data.
 
 There's no sign-in and no write tool. Each IP address gets 60 calls a minute
 and 300 an hour; past that the server answers HTTP 429 with a `Retry-After`

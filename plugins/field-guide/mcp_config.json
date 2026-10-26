@@ -1,0 +1,7 @@
+{
+  "mcpServers": {
+    "databricks-field-guide": {
+      "url": "https://databricks.techfabric.com/mcp"
+    }
+  }
+}

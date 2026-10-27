@@ -1,6 +1,6 @@
 {
   "name": "field-guide",
-  "version": "1.8.0",
+  "version": "1.9.1",
   "description": "Interactive Databricks learning, certification practice and sourced engineering guidance.",
   "author": { "name": "TechFabric" },
   "mcpServers": {

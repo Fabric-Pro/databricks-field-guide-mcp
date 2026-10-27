@@ -195,10 +195,12 @@ Gemini CLI and OpenCode each have their own line in the
 | `visualize` | Builds a guide-grounded diagram or chart |
 | `decide` | Compares engineering choices from the guide's stated trade-offs |
 | `explore_diagram` | Opens an interactive walkthrough of a chapter diagram |
+| `toolkit_info` | Says what TechFabric's free Chrome extension for Databricks (the [TechFabric Toolkit for Databricks](https://chromewebstore.google.com/detail/techfabric-toolkit-for-da/lhlcbhfedpapiijjkgbgecciiponhlgo)) does, feature by feature: where each shows up, whether it needs your connected workspace, and the tool here that does the same; plus install, permissions and privacy |
+| `toolkit_generate` | Runs the extension's offline generators with its own code: Unity Catalog grants with rollback, table DDL and MERGE, bundle YAML and CLI, Terraform, Auto Loader, Lakeflow and CDC starters, data-quality checks, cost SQL, an error decoder, a pre-flight check for destructive SQL, MLflow and serving templates, and its snippet libraries |
 
-All sixteen are read-only, and none calls a model: the review and the estimate are
-deterministic checks against the guide's text, and your agent does the
-reasoning. A rule applies only while the guide still says what it cites. The
+All eighteen are read-only, and none calls a model: the review and the estimate are
+deterministic checks against the guide's text, the toolkit's generators run the
+extension's own code, and your agent does the reasoning. A rule applies only while the guide still says what it cites. The
 rules leave out what the guide doesn't argue, such as `SELECT *` or `collect()`
 on their own.
 

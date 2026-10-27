@@ -36,7 +36,7 @@ export async function diagnose(endpoint = DEFAULT, { fetcher = fetch } = {}) {
     return result.result;
   };
   const init = await rpc("initialize", {
-    protocolVersion: "2025-11-25", clientInfo: { name: "field-guide-doctor", version: "1.8.0" },
+    protocolVersion: "2025-11-25", clientInfo: { name: "field-guide-doctor", version: "1.9.1" },
     capabilities: { extensions: { "io.modelcontextprotocol/ui": { mimeTypes: ["text/html;profile=mcp-app"] } } },
   });
   const { tools } = await rpc("tools/list", {});
